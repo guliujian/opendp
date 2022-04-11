@@ -23,6 +23,11 @@ pub mod gaussian;
 pub use crate::measurements::gaussian::*;
 
 #[cfg(all(feature="floating-point", feature="contrib"))]
+pub mod discrete_exponential;
+#[cfg(all(feature="floating-point", feature="contrib"))]
+pub use crate::meas::discrete_exponential::*;
+
+#[cfg(all(feature="floating-point", feature="contrib"))]
 pub mod ptr;
 #[cfg(all(feature="floating-point", feature="contrib"))]
 pub use crate::measurements::ptr::*;

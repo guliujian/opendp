@@ -173,3 +173,19 @@ impl Debug for AgnosticMetric {
 impl Metric for AgnosticMetric {
     type Distance = ();
 }
+
+impl<Q> Clone for InfDistance<Q> {
+    fn clone(&self) -> Self { Self::default() }
+}
+impl<Q> PartialEq for InfDistance<Q> {
+    fn eq(&self, _other: &Self) -> bool { true }
+}
+impl<Q> Debug for InfDistance<Q> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "InfDistance()")
+    }
+}
+impl<Q> Metric for InfDistance<Q> {
+    type Distance = Q;
+}
+impl<Q> SensitivityMetric for InfDistance<Q> {}
