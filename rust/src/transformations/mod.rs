@@ -24,9 +24,9 @@ pub(crate) mod postprocess;
 pub(crate) use postprocess::*;
 
 #[cfg(feature="contrib")]
-pub mod quantile_discrete_exponential;
+pub mod quantile_scorer_de;
 #[cfg(feature="contrib")]
-pub use crate::trans::quantile_discrete_exponential::*;
+pub use crate::trans::quantile_scorer_de::*;
 
 #[cfg(feature="contrib")]
 pub mod manipulation;
