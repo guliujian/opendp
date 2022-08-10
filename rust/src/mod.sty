@@ -122,3 +122,18 @@
 \newcommand{\function}{\texttt{function}}
 \newcommand{\float}{\texttt{float }}
 \newcommand{\questionc}[1]{\textcolor{red}{\textbf{Question:} #1}}
+
+
+\newcommand{\transformationTheorem}[2]{%
+  \begin{theorem}
+    For every setting of the input parameters #1 to #2 such that the given preconditions
+    hold, #2 raises an exception (at compile time or run time) or returns a valid transformation with the following properties:
+    \begin{enumerate}
+        \item \textup{(Appropriate output domain).} For every element $v$ in \texttt{input\_domain}, $\function(v)$ is in \texttt{output\_domain}. % Prof. Vadhan said on 29/6 to leave it as this for now, but maybe in the future we add to the theorem statement what exactly the input domain and output domain are (although of course we already say this in the proof)
+        
+        \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
+        
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ has the associated type for \texttt{input\_metric} and $\dout$ has the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\Map(\din) \leq \dout$, then $\function(v), \function(w)$ are $\dout$-close under \texttt{output\_metric}.
+    \end{enumerate}
+  \end{theorem}
+}
