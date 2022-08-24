@@ -5,12 +5,12 @@ use crate::{
     traits::Float,
 };
 
-use self::cks20::cdp_epsilon;
+use self::cdp_epsilon::cdp_epsilon;
 
 #[cfg(feature = "ffi")]
 mod ffi;
 
-mod cks20;
+mod cdp_epsilon;
 
 pub fn make_zCDP_to_approxDP<DI, DO, MI, QO>(
     meas: Measurement<DI, DO, MI, ZeroConcentratedDivergence<QO>>,
