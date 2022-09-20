@@ -1,10 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
+- family-names: "Hay"
+  given-names: "Michael"
+- family-names: "Gaboardi"
+  given-names: "Marco"
+- family-names: "Vadhan"
+  given-names: "Salil"
 - family-names: Shoemate
   given-names: "Michel"
-- family-names: Vadhan
-  given-names: "Salil"
 - family-names: Vyrros
   given-names: "Andy"
 - name: "The OpenDP Software Project team"
@@ -13,7 +17,7 @@ title: "OpenDP Library"
 version: 0.5.0
 date-released: 2022-08-23
 url: "https://github.com/opendp/opendp"
-xpreferred-citation:
+preferred-citation:
   type: conference-paper	
   title: "A Programming Framework for OpenDP"
   abstract: "In this working paper, we propose a programming framework for the library of differentially private algorithms that will be at the core of the OpenDP open-source software project, and recommend programming languages in which to implement the framework."
