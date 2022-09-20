@@ -22,7 +22,7 @@ preferred-citation:
     given-names: "Marco"
   - family-names: "Vadhan"
     given-names: "Salil"
-  - conference:
+  conference:
     name: "6th Workshop on the Theory and Practice of Differential Privacy (TPDP 2020)"
     date-start: "2020-11-13"
   title: "A Programming Framework for OpenDP"
