@@ -23,7 +23,8 @@ preferred-citation:
   - family-names: "Vadhan"
     given-names: "Salil"
   conference:
-    name: "6th Workshop on the Theory and Practice of Differential Privacy (TPDP 2020)"
-    date-start: "2020-11-13"
+  - name: "6th Workshop on the Theory and Practice of Differential Privacy (TPDP 2020)"
+  - date-start: "2020-11-13"
   title: "A Programming Framework for OpenDP"
+  abstract: "In this working paper, we propose a programming framework for the library of differentially private algorithms that will be at the core of the OpenDP open-source software project, and recommend programming languages in which to implement the framework."
   year: 2020
