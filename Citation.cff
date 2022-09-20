@@ -1,12 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Hay"
-  given-names: "Michael"
-- family-names: "Gaboardi"
-  given-names: "Marco"
-- family-names: "Vadhan"
-  given-names: "Salil"
 - family-names: Shoemate
   given-names: "Michel"
 - family-names: Vyrros
@@ -14,6 +8,7 @@ authors:
 - name: "The OpenDP Software Project team"
   type: generic
 title: "OpenDP Library"
+license: MIT
 version: 0.5.0
 date-released: 2022-08-23
 url: "https://github.com/opendp/opendp"
