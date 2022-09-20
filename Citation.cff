@@ -1,41 +1,30 @@
 cff-version: 1.2.0
-title: A programming framework for OpenDP
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
-type: software
+message: "If you use this software, please cite it as below."
 authors:
-  - given-names: Michael
-    family-names: Hay
-    email: michaelhay@colgate.edu
-    affiliation: >-
-      Associate Professor, Department of Computer
-      Science, Colgate University
-  - family-names: Gaboardi
-    given-names: Marco
-    affiliation: >-
-      Associate Professor, Computer Science
-      department, Boston University
-    email: gaboardi@bu.edu
-  - given-names: Salil
-    family-names: Vadhan
-    email: salil_vadhan@harvard.edu
-    affiliation: >-
-      Vicky Joseph Professor of Computer Science and
-      Applied Mathematics, Harvard John A. Paulson
-      School of Engineering & Applied Sciences
-identifiers:
-  - type: url
-    value: >-
-      https://salil.seas.harvard.edu/publications/programming-framework-opendp
-repository-code: 'https://github.com/opendp/opendp'
-abstract: >-
-  In this working paper, we propose a programming
-  framework for the library of differentially private
-  algorithms that will be at the core of the OpenDP
-  open-source software project, and recommend
-  programming languages in which to implement the
-  framework.
-license: MIT
+- family-names: Shoemate
+  given-names: "Michel"
+- family-names: Vadhan
+  given-names: "Salil"
+- family-names: Vyrros
+  given-names: "Andy"
+- name: "The OpenDP Software Project team"
+  type: generic
+title: "OpenDP Library"
 version: 0.5.0
-date-released: '2022-08-23'
+date-released: 2022-08-23
+url: "https://github.com/opendp/opendp"
+preferred-citation:
+  type: generic	
+  title: "A Programming Framework for OpenDP"
+  abstract: "In this working paper, we propose a programming framework for the library of differentially private algorithms that will be at the core of the OpenDP open-source software project, and recommend programming languages in which to implement the framework."
+  year: 2020
+  authors:
+  - family-names: "Hay"
+    given-names: "Michael"
+  - family-names: "Gaboardi"
+    given-names: "Marco"
+  - family-names: "Vadhan"
+    given-names: "Salil"
+  conference:
+  - name: "6th Workshop on the Theory and Practice of Differential Privacy (TPDP 2020)"
+  - date-start: "2020-11-13"
