@@ -14,10 +14,9 @@ version: 0.5.0
 date-released: 2022-08-23
 url: "https://github.com/opendp/opendp"
 preferred-citation:
-  type: generic	
+  type: conference-paper	
   title: "A Programming Framework for OpenDP"
   abstract: "In this working paper, we propose a programming framework for the library of differentially private algorithms that will be at the core of the OpenDP open-source software project, and recommend programming languages in which to implement the framework."
-  year: 2020
   authors:
   - family-names: "Hay"
     given-names: "Michael"
@@ -28,3 +27,5 @@ preferred-citation:
   conference:
   - name: "6th Workshop on the Theory and Practice of Differential Privacy (TPDP 2020)"
   - date-start: "2020-11-13"
+  year: 2020
+  url: https://salil.seas.harvard.edu/publications/programming-framework-opendp
