@@ -307,7 +307,7 @@ mod test_scorer {
 
 #[cfg(test)]
 mod test_trans {
-    use crate::meas::make_base_exponential_candidates_gumbel;
+    use crate::measurements::make_base_exponential_candidates_gumbel;
 
     use super::*;
 
