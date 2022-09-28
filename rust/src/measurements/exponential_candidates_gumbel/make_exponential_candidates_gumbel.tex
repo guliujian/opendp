@@ -1,7 +1,7 @@
 \documentclass{article}
-\input{../../../mod.sty}
+\input{../../mod.sty}
 
-\title{OpenDP: \texttt{make\_base\_exponential\_candidates\_gumbel}}
+\title{\texttt{fn make\_base\_exponential\_candidates\_gumbel}}
 \author{Michael Shoemate}
 \begin{document}
 \maketitle
@@ -10,6 +10,7 @@
 The discrete exponential mechanism is passed a vector of candidate scores 
 and approximately releases the index of the greatest score.
 This release can be later be used to index into the public candidate set (via postprocessing).
+
 
 The naive implementation samples some index $k$ from a categorical distribution, 
 with probabilities assigned to each candidate relative to their score.
@@ -166,21 +167,21 @@ The following proves that $M$ as defined in \ref{m-naive} satisfies differential
 \begin{align*}
     \ln\left(\frac{P(M(s) = k)}{P(M(s') = k)}\right) &= \ln \left(
         \frac
-            {\exp{\frac{\epsilon s_k}{\Delta}}}
-            {\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}
+            {\exp(\frac{\epsilon s_k}{\Delta})}
+            {\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})
         }
         \bigg/ \frac
-            {\exp{\frac{\epsilon s'_k}{\Delta}}}
-            {\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}} \right)
+            {\exp(\frac{\epsilon s'_k}{\Delta})}
+            {\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})} \right)
         &&\text{substitute \ref{prob-of-k}, assuming } \tau \geq \Delta / \epsilon \\
     &= \ln \left(\frac
-        {\exp{\frac{\epsilon s_k}{\Delta}}}{\exp{\frac{\epsilon s'_k}{\Delta}}}
-        \frac{\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
+        {\exp(\frac{\epsilon s_k}{\Delta})}{\exp(\frac{\epsilon s'_k}{\Delta})}
+        \frac{\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
     &= \ln \left(\frac
-        {\exp{\frac{\epsilon s_k}{\Delta}}}{\exp{\frac{\epsilon s'_k}{\Delta}}}\right) + ln \left(
-        \frac{\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
+        {\exp(\frac{\epsilon s_k}{\Delta})}{\exp(\frac{\epsilon s'_k}{\Delta})}\right) + ln \left(
+        \frac{\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
     &= \frac{\epsilon (s_k - s'_k)}{\Delta} 
-        + ln\left(\frac{\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
+        + ln\left(\frac{\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
     &\leq \frac{\epsilon (s_k - s'_k)}{\Delta} + \frac{-\epsilon \max_j (s_j - s'_j)}{\Delta} &&\text{by \ref{priv-inequality}} \\
     &\leq \frac{\epsilon\max\limits_{ij} \abs{(s_i - s'_i) - (s_j - s'_j)}}{\Delta} \\
     &\leq \epsilon
@@ -188,14 +189,14 @@ The following proves that $M$ as defined in \ref{m-naive} satisfies differential
 
 \begin{lemma}
     \label{priv-inequality}
-    $ln\left(\frac{\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \geq \frac{\epsilon \max_j (s_j - s'_j)}{\Delta}$.
+    $ln\left(\frac{\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \geq \frac{\epsilon \max_j (s_j - s'_j)}{\Delta}$.
 \end{lemma}
 
 \begin{align*}
-    ln\left(\frac{\sum_{i} \exp{\frac{\epsilon s'_i}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right)
-    &= ln\left(\frac{\sum_{i} \exp{\frac{\epsilon (s'_i - s_i + s_i)}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
-    &= ln\left(\frac{\sum_{i} \exp{\frac{\epsilon (s'_i - s_i)}{\Delta}}\exp{\frac{\epsilon (s_i)}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
-    &\geq ln\left(\frac{\exp{\frac{\epsilon min_j(s'_j - s_j)}{\Delta}} \sum_{i} \exp{\frac{\epsilon (s_i)}{\Delta}}}{\sum_{i} \exp{\frac{\epsilon s_i}{\Delta}}}\right) \\
+    ln\left(\frac{\sum_{i} \exp(\frac{\epsilon s'_i}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right)
+    &= ln\left(\frac{\sum_{i} \exp(\frac{\epsilon (s'_i - s_i + s_i)}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
+    &= ln\left(\frac{\sum_{i} \exp(\frac{\epsilon (s'_i - s_i)}{\Delta})\exp(\frac{\epsilon (s_i)}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
+    &\geq ln\left(\frac{\exp(\frac{\epsilon min_j(s'_j - s_j)}{\Delta}) \sum_{i} \exp(\frac{\epsilon (s_i)}{\Delta})}{\sum_{i} \exp(\frac{\epsilon s_i}{\Delta})}\right) \\
     &= \frac{\epsilon min_j(s'_j - s_j)}{\Delta} \\
     &= -\frac{\epsilon \max_j (s_j - s'_j)}{\Delta}
 \end{align*}
