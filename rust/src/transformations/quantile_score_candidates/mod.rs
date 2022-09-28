@@ -2,9 +2,9 @@ use num::{Float, One};
 use std::cmp::Ordering;
 
 use crate::{
-    core::{Function, StabilityRelation, Transformation},
-    dist::{IntDistance, InfDifferenceDistance, SymmetricDistance},
-    dom::{AllDomain, SizedDomain, VectorDomain},
+    core::{Function, StabilityMap, Transformation},
+    metrics::{IntDistance, InfDifferenceDistance, SymmetricDistance},
+    domains::{AllDomain, SizedDomain, VectorDomain},
     error::Fallible,
     traits::{CheckNull, DistanceConstant, ExactIntCast, InfSub},
 };
@@ -35,7 +35,7 @@ where
         Function::new_fallible(move |arg: &Vec<TI>| score(arg.clone(), &candidates, alpha.clone())),
         SymmetricDistance::default(),
         InfDifferenceDistance::default(),
-        StabilityRelation::new_from_constant(inf_diff_dist_const),
+        StabilityMap::new_from_constant(inf_diff_dist_const),
     ))
 }
 
@@ -66,7 +66,7 @@ where
         Function::new_fallible(move |arg: &Vec<TI>| score(arg.clone(), &candidates, alpha.clone())),
         SymmetricDistance::default(),
         InfDifferenceDistance::default(),
-        StabilityRelation::new_from_constant(TO::one()),
+        StabilityMap::new_from_constant(TO::one()),
     ))
 }
 

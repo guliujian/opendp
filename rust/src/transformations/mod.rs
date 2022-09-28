@@ -24,9 +24,9 @@ pub(crate) mod postprocess;
 pub(crate) use postprocess::*;
 
 #[cfg(feature="contrib")]
-pub mod quantile_scorer_de;
+pub mod quantile_score_candidates;
 #[cfg(feature="contrib")]
-pub use crate::trans::quantile_scorer_de::*;
+pub use crate::transformations::quantile_score_candidates::*;
 
 #[cfg(feature="contrib")]
 pub mod manipulation;

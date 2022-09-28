@@ -1,12 +1,12 @@
 use num::Float;
 
 use crate::{
-    core::{Function, Measurement, PrivacyRelation},
-    dist::{InfDifferenceDistance, MaxDivergence},
-    dom::{AllDomain, VectorDomain},
+    core::{Function, Measurement, PrivacyMap},
+    domains::{AllDomain, VectorDomain},
     error::Fallible,
-    samplers::SampleUniform,
-    traits::{CheckNull, InfMul, InfDiv},
+    measures::MaxDivergence,
+    metrics::InfDifferenceDistance,
+    traits::{CheckNull, InfDiv, InfMul, samplers::SampleUniform},
 };
 
 pub fn make_base_exponential_candidates_gumbel<TI>(
@@ -38,37 +38,28 @@ where
                         .map(|u| (i, llik - u.ln().neg().ln()))
                 })
                 // retrieve the highest noisy likelihood pair
-                .try_fold(
-                    (arg.len(), TI::neg_infinity()),
-                    |acc: (usize, TI), res| {
-                        res.map(|v| if acc.1 > v.1 { acc } else { v })
-                    },
-                )
+                .try_fold((arg.len(), TI::neg_infinity()), |acc: (usize, TI), res| {
+                    res.map(|v| if acc.1 > v.1 { acc } else { v })
+                })
                 // only return the index
                 .map(|v| v.0)
         }),
         InfDifferenceDistance::default(),
         MaxDivergence::default(),
-        PrivacyRelation::new_all(
-            move |d_in: &TI, d_out: &TI| {
-                if d_in.is_sign_negative() {
-                    return fallible!(InvalidDistance, "sensitivity must be non-negative");
-                }
-                if d_out.is_sign_negative() {
-                    return fallible!(InvalidDistance, "epsilon must be non-negative");
-                }
-                // d_out >= d_in / temperature
-                Ok(d_out.neg_inf_mul(&temperature)? >= d_in.clone())
-            },
-            Some(move |d_out: &TI| d_out.neg_inf_mul(&temperature)),
-        ),
+        PrivacyMap::new_fallible(move |d_in: &TI| {
+            if d_in.is_sign_negative() {
+                return fallible!(InvalidDistance, "sensitivity must be non-negative");
+            }
+            // d_out >= d_in / temperature
+            d_in.inf_div(&temperature)
+        }),
     ))
 }
 
 #[cfg(test)]
 pub mod test_exponential {
     use super::*;
-    
+
     #[test]
     fn test_exponential() -> Fallible<()> {
         let de = make_base_exponential_candidates_gumbel(1., false)?;

@@ -1,10 +1,10 @@
+\documentclass{article}
 \input{../../mod.sty}
 
 % \externaldocument[trans_mod:]{../mod}
 % \ref{trans_mod:thrm:privacy-proof}
 
-
-\title{OpenDP: \texttt{quantile\_score\_candidates}}
+\title{\texttt{def quantile\_score\_candidates}}
 \author{Michael Shoemate \and Christian Covington \and Ira Globus-Harrus}
 \begin{document}
 \maketitle
@@ -14,20 +14,20 @@ The quantile score function scores each $c$ in a set of candidates $C$.
 
 \begin{equation}
 \begin{array}{rl}
-    s_i &= -\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)}
+    s_i &= -|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)|
 \end{array}
 \end{equation}
 
-Where $\#(X < C_i) = \cardinality{\{x \in X | x < C_i\}}$ is the number of values in $X$ less than $C_i$, 
+Where $\#(X < C_i) = |\{x \in X | x < C_i\}|$ is the number of values in $X$ less than $C_i$, 
 and similarly for other variations of inequalities.
 The scalar score function can be equivalently stated:
 \begin{align}
-    s_i &= -\abs{(1 - \alpha) \#(X < c) - \alpha \#(X > c)} \\
-    &= -\abs{(1 - \alpha) \#(X < c) - \alpha * (\cardinality{X} - \#(X < c) - \#(X = c))} \\
-    &= -\abs{\#(X < c) - \alpha * (\cardinality{X} - \#(X = c))}
+    s_i &= -|(1 - \alpha) \#(X < c) - \alpha \#(X > c)| \\
+    &= -|(1 - \alpha) \#(X < c) - \alpha * (|X| - \#(X < c) - \#(X = c))| \\
+    &= -|\#(X < c) - \alpha * (|X| - \#(X = c))|
 \end{align}
 
-It has an intuitive interpretation as $-\abs{candidate\_rank - ideal\_rank}$, 
+It has an intuitive interpretation as $-|candidate\_rank - ideal\_rank|$, 
 where the absolute distance between the candidate and ideal rank penalizes the score.
 The ideal rank does not include values in the dataset equal to the candidate.
 The score is maximized at zero when the candidate rank is equivalent to the rank at the ideal $\alpha$-quantile.
@@ -37,8 +37,8 @@ For comparison, we can equivalently write the OpenDP scorer as if there were som
 
 \[
 \begin{array}{cl}
-    OpenDP &-\abs{\#(X < c) + \alpha \#(X = c) - \alpha * \cardinality{X}} \\
-    Smith &-\abs{\#(X < c) + 1 \#(X = c) - \alpha * \cardinality{X}}
+    OpenDP &-|\#(X < c) + \alpha \#(X = c) - \alpha * |X|| \\
+    Smith &-|\#(X < c) + 1 \#(X = c) - \alpha * |X||
 \end{array}
 \]
 
@@ -101,7 +101,7 @@ The ideal rank is 1.25. The nearest candidate, 1, has the greatest score, follow
 
 \subsection{Pseudocode}
 \label{sec:python-pseudocode}
-\inputminted{python}{./pseudocode/make_quantile_score_candidates.py}
+\lstinputlisting{./pseudocode/make_quantile_score_candidates.py}
 
 \subsection{Appropriate Output Domain}
 \label{sec:approp-output-domain}
@@ -116,28 +116,28 @@ On the output side, InfDifferenceDistance is well-defined on VectorDomains.
 
 We first derive the sensitivity when neighbors differ by an addition or removal of a record.
 \begin{align*}
-    \Delta_{Sym} &= \max\limits_{s \sim s'} \max\limits_{ij} \abs{(s_i - s'_i) - (s_j - s'_j)} \\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{s_i - s'_i} &&\text{$s$ is not monotonic; take looser bound}\\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) \#(X' < C_i) - \alpha \#(X' > C_i)}}
+    \Delta_{Sym} &= \max\limits_{s \sim s'} \max\limits_{ij} |(s_i - s'_i) - (s_j - s'_j)| \\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |s_i - s'_i| &&\text{$s$ is not monotonic; take looser bound}\\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)|
+        \\&\hspace{1cm} - |(1 - \alpha) \#(X' < C_i) - \alpha \#(X' > C_i)||
 \intertext{Consider each of the three cases of adding or removing an element in X.}
 \intertext{Case 1. Assume $X'$ is equal to $X$, but with some $X_j < C_i$ added or removed.}
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) (\#(X < C_i) \pm 1) - \alpha \#(X > C_i)}} \\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - (\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} +\abs{\pm(1 - \alpha)})} &&\text{by triangle inequality} \\
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{1 - \alpha} &&\text{scores cancel}\\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - |(1 - \alpha) (\#(X < C_i) \pm 1) - \alpha \#(X > C_i)|| \\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)|
+        \\&\hspace{1cm} - (|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| + |\pm(1 - \alpha)|)| &&\text{by triangle inequality} \\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |1 - \alpha| &&\text{scores cancel}\\
     &= 2 (1 - \alpha) &&\text{since } \alpha \leq 1
 \intertext{Case 2. Assume $X'$ is equal to $X$, but with some $X_j > C_i$ added or removed.}
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) \#(X < C_i) - \alpha (\#(X > C_i) \pm 1)}} \\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - (\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} +\abs{\pm\alpha})} &&\text{by triangle inequality} \\
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{\alpha} &&\text{scores cancel}\\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - |(1 - \alpha) \#(X < C_i) - \alpha (\#(X > C_i) \pm 1)|| \\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - (|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| + |\pm\alpha|)| &&\text{by triangle inequality} \\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |\alpha| &&\text{scores cancel}\\
     &= 2 \alpha &&\text{since } \alpha \geq 0
 \intertext{Case 3. Assume $X'$ is equal to $X$, but with some $X_j = C_i$ added or removed.}
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)}} \\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - |(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)|| \\
     &= 0 &&\text{no change in score}
 \intertext{Take the union bound over all cases.}
     \Delta_{Sym} &= 2 max(\alpha, 1 - \alpha)
@@ -158,7 +158,7 @@ We first derive the sensitivity when neighbors differ by an addition or removal 
 
 \subsection{Pseudocode}
 \label{sec:sized-python-pseudocode}
-\inputminted{python}{./pseudocode/make_sized_quantile_score_candidates.py}
+\lstinputlisting{./pseudocode/make_sized_quantile_score_candidates.py}
 
 \subsection{Appropriate Output Domain}
 The raw type and domain are equivalent, save for potential nullity in the atomic type. 
@@ -173,17 +173,17 @@ On the output side, InfDifferenceDistance is well-defined on VectorDomains.
 
 We first derive the sensitivity when neighbors differ by changing one record.
 \begin{align*}
-    \Delta_{CO} &= \max\limits_{s \sim s'} \max\limits_{ij} \abs{(s_i - s'_i) - (s_j - s'_j)} \\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{s_i - s'_i} &&\text{$s$ is not monotonic; take looser bound}\\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) \#(X' < C_i) - \alpha \#(X' > C_i)}}
+    \Delta_{CO} &= \max\limits_{s \sim s'} \max\limits_{ij} |(s_i - s'_i) - (s_j - s'_j)| \\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |s_i - s'_i| &&\text{$s$ is not monotonic; take looser bound}\\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - |(1 - \alpha) \#(X' < C_i) - \alpha \#(X' > C_i)||
 \intertext{Consider each of the four cases of changing a row in X.}
 \intertext{Case 1. Assume $X'$ is equal to $X$, but with some $X_j < C_i$ replaced with $X'_j > C_i$.}
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - \abs{(1 - \alpha) (\#(X < C_i) - 1) - \alpha (\#(X > C_i) + 1)}} \\
-    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{(\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} 
-        \\&\hspace{1cm} - (\abs{(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)} + \abs{1})} &&\text{by triangle inequality} \\
-    &= 2 \max\limits_{s \sim s'} \max\limits_{i} \abs{1} &&\text{scores cancel}\\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| 
+        \\&\hspace{1cm} - (1 - \alpha) (\#(X < C_i) - 1) - \alpha (\#(X > C_i) + 1)|| \\
+    &\leq 2 \max\limits_{s \sim s'} \max\limits_{i} |(|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)|
+        \\&\hspace{1cm} - (|(1 - \alpha) \#(X < C_i) - \alpha \#(X > C_i)| + |1|)| &&\text{by triangle inequality} \\
+    &= 2 \max\limits_{s \sim s'} \max\limits_{i} |1| &&\text{scores cancel}\\
     &= 2
 \intertext{Case 2. Assume $X'$ is equal to $X$, but with some $X_j > C_i$ replaced with $X'_j < C_i$.}
     &= 2 &&\text{by symmetry, follows from Case 1.}

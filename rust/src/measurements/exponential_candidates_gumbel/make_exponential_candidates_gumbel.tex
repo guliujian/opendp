@@ -1,3 +1,4 @@
+\documentclass{article}
 \input{../../../mod.sty}
 
 \title{OpenDP: \texttt{make\_base\_exponential\_candidates\_gumbel}}
@@ -114,7 +115,7 @@ If $X_1 \sim Exp(\lambda_1)$, $X_2 \sim Exp(\lambda_2)$, then $P(X_1 \leq X_2) =
 
 \section{Function}
 \label{sec:python-pseudocode}
-\inputminted{python}{./pseudocode/make_base_exponential_candidates_gumbel.py}
+\lstinputlisting{./pseudocode/make_base_exponential_candidates_gumbel.py}
 
 \subsection{Metric}
 We need a metric that captures the distance between score vectors $s$ and $s'$ respectively on neighboring datasets. 
