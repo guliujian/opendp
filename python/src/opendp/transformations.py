@@ -488,7 +488,7 @@ def make_bounded_sum(
     MI: RuntimeTypeDescriptor = "SymmetricDistance",
     T: RuntimeTypeDescriptor = None
 ) -> Transformation:
-    """Make a Transformation that computes the sum of bounded data. 
+    """Make a Transformation that computes the sum of bounded data.
     Use `make_clamp` to bound data.
     
     [make_bounded_sum in Rust documentation.](https://docs.rs/opendp/latest/opendp/transformations/fn.make_bounded_sum.html)
@@ -497,6 +497,13 @@ def make_bounded_sum(
     
     * [CSVW22 Widespread Underestimation of Sensitivity...](https://arxiv.org/pdf/2207.10635.pdf)
     * [DMNS06 Calibrating Noise to Sensitivity in Private Data Analysis](https://people.csail.mit.edu/asmith/PS/sensitivity-tcc-final.pdf)
+    
+    **Supporting Elements:**
+    
+    * Input Domain:   `VectorDomain<BoundedDomain<T>>`
+    * Output Domain:  `AllDomain<T>`
+    * Input Metric:   `MI`
+    * Output Metric:  `AbsoluteDistance<T>`
     
     :param bounds: Tuple of lower and upper bounds for data in the input domain.
     :type bounds: Tuple[Any, Any]
@@ -673,7 +680,7 @@ def make_cast_inherent(
 
 def make_cdf(
     TA: RuntimeTypeDescriptor = "float"
-) -> Transformation:
+):
     """Postprocess a noisy array of float summary counts into a cumulative distribution.
     
     [make_cdf in Rust documentation.](https://docs.rs/opendp/latest/opendp/transformations/fn.make_cdf.html)
@@ -682,12 +689,9 @@ def make_cdf(
     
     * Input Domain:   `VectorDomain<AllDomain<TA>>`
     * Output Domain:  `VectorDomain<AllDomain<TA>>`
-    * Input Metric:   `AgnosticMetric`
-    * Output Metric:  `AgnosticMetric`
     
     :param TA: Atomic Type. One of `f32` or `f64`
     :type TA: :py:ref:`RuntimeTypeDescriptor`
-    :rtype: Transformation
     :raises TypeError: if an argument's type differs from the expected type
     :raises UnknownTypeError: if a type argument fails to parse
     :raises OpenDPException: packaged error from the core OpenDP library
@@ -705,7 +709,7 @@ def make_cdf(
     function.argtypes = [ctypes.c_char_p]
     function.restype = FfiResult
     
-    return c_to_py(unwrap(function(TA), Transformation))
+    return c_to_py(unwrap(function(TA), Postprocessor))
 
 
 def make_clamp(
@@ -756,7 +760,7 @@ def make_consistent_b_ary_tree(
     branching_factor: int,
     TIA: RuntimeTypeDescriptor = "int",
     TOA: RuntimeTypeDescriptor = "float"
-) -> Transformation:
+):
     """Postprocessing transformation that makes a noisy b-ary tree internally consistent, and returns the leaf layer.
     
     The input argument of the function is a balanced `b`-ary tree implicitly stored in breadth-first order
@@ -776,8 +780,6 @@ def make_consistent_b_ary_tree(
     
     * Input Domain:   `VectorDomain<AllDomain<TIA>>`
     * Output Domain:  `VectorDomain<AllDomain<TOA>>`
-    * Input Metric:   `AgnosticMetric`
-    * Output Metric:  `AgnosticMetric`
     
     :param branching_factor: the maximum number of children
     :type branching_factor: int
@@ -785,7 +787,6 @@ def make_consistent_b_ary_tree(
     :type TIA: :py:ref:`RuntimeTypeDescriptor`
     :param TOA: Atomic type of the output data. Should be a float type.
     :type TOA: :py:ref:`RuntimeTypeDescriptor`
-    :rtype: Transformation
     :raises TypeError: if an argument's type differs from the expected type
     :raises UnknownTypeError: if a type argument fails to parse
     :raises OpenDPException: packaged error from the core OpenDP library
@@ -806,7 +807,7 @@ def make_consistent_b_ary_tree(
     function.argtypes = [ctypes.c_size_t, ctypes.c_char_p, ctypes.c_char_p]
     function.restype = FfiResult
     
-    return c_to_py(unwrap(function(branching_factor, TIA, TOA), Transformation))
+    return c_to_py(unwrap(function(branching_factor, TIA, TOA), Postprocessor))
 
 
 def make_count(
@@ -1776,7 +1777,7 @@ def make_quantiles_from_counts(
     interpolation: str = "linear",
     TA: RuntimeTypeDescriptor = None,
     F: RuntimeTypeDescriptor = "float"
-) -> Transformation:
+):
     """Postprocess a noisy array of summary counts into quantiles.
     
     [make_quantiles_from_counts in Rust documentation.](https://docs.rs/opendp/latest/opendp/transformations/fn.make_quantiles_from_counts.html)
@@ -1785,8 +1786,6 @@ def make_quantiles_from_counts(
     
     * Input Domain:   `VectorDomain<AllDomain<TA>>`
     * Output Domain:  `VectorDomain<AllDomain<TA>>`
-    * Input Metric:   `AgnosticMetric`
-    * Output Metric:  `AgnosticMetric`
     
     :param bin_edges: The edges that the input data was binned into before counting.
     :type bin_edges: Any
@@ -1798,7 +1797,6 @@ def make_quantiles_from_counts(
     :type TA: :py:ref:`RuntimeTypeDescriptor`
     :param F: Float type of the alpha argument. One of `f32` or `f64`
     :type F: :py:ref:`RuntimeTypeDescriptor`
-    :rtype: Transformation
     :raises TypeError: if an argument's type differs from the expected type
     :raises UnknownTypeError: if a type argument fails to parse
     :raises OpenDPException: packaged error from the core OpenDP library
@@ -1821,7 +1819,7 @@ def make_quantiles_from_counts(
     function.argtypes = [AnyObjectPtr, AnyObjectPtr, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
     function.restype = FfiResult
     
-    return c_to_py(unwrap(function(bin_edges, alphas, interpolation, TA, F), Transformation))
+    return c_to_py(unwrap(function(bin_edges, alphas, interpolation, TA, F), Postprocessor))
 
 
 def make_resize(
@@ -2382,9 +2380,8 @@ def make_sized_bounded_sum(
     MI: RuntimeTypeDescriptor = "SymmetricDistance",
     T: RuntimeTypeDescriptor = None
 ) -> Transformation:
-    """Make a Transformation that computes the sum of bounded data with known dataset size. 
-    
-    This uses a restricted-sensitivity proof that takes advantage of known dataset size for better utility. 
+    """Make a Transformation that computes the sum of bounded data with known dataset size.
+    This uses a restricted-sensitivity proof that takes advantage of known dataset size for better utility.
     Use `make_clamp` to bound data and `make_bounded_resize` to establish dataset size.
     
     [make_sized_bounded_sum in Rust documentation.](https://docs.rs/opendp/latest/opendp/transformations/fn.make_sized_bounded_sum.html)
@@ -2393,6 +2390,13 @@ def make_sized_bounded_sum(
     
     * [CSVW22 Widespread Underestimation of Sensitivity...](https://arxiv.org/pdf/2207.10635.pdf)
     * [DMNS06 Calibrating Noise to Sensitivity in Private Data Analysis](https://people.csail.mit.edu/asmith/PS/sensitivity-tcc-final.pdf)
+    
+    **Supporting Elements:**
+    
+    * Input Domain:   `SizedDomain<VectorDomain<BoundedDomain<T>>>`
+    * Output Domain:  `AllDomain<T>`
+    * Input Metric:   `MI`
+    * Output Metric:  `AbsoluteDistance<T>`
     
     :param size: Number of records in input data.
     :type size: int

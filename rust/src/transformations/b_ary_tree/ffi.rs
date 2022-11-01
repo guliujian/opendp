@@ -4,11 +4,11 @@ use std::{
 };
 
 use crate::{
-    core::{FfiResult, IntoAnyTransformationFfiResultExt},
+    core::{FfiResult, IntoAnyTransformationFfiResultExt, MetricSpace},
     ffi::{any::AnyTransformation, util::Type},
     metrics::{L1Distance, L2Distance},
     traits::{Integer, Number},
-    transformations::{make_b_ary_tree, BAryTreeMetric},
+    transformations::{make_b_ary_tree, BAryTreeMetric}, domains::{VectorDomain, AllDomain},
 };
 
 use super::choose_branching_factor;
@@ -32,6 +32,7 @@ pub extern "C" fn opendp_transformations__make_b_ary_tree(
         fn monomorphize2<M, TA>(leaf_count: usize, branching_factor: usize) -> FfiResult<*mut AnyTransformation>
         where
             TA: Integer,
+            (VectorDomain<AllDomain<TA>>, M): MetricSpace,
             M: 'static + BAryTreeMetric,
             M::Distance: Number,
         {

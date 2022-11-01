@@ -8,7 +8,7 @@ from opendp.core import *
 __all__ = [
     "make_basic_composition",
     "make_chain_mt",
-    "make_chain_tm",
+    "make_chain_pm",
     "make_chain_tt",
     "make_fix_delta",
     "make_population_amplification",
@@ -82,18 +82,17 @@ def make_chain_mt(
     return c_to_py(unwrap(function(measurement1, transformation0), Measurement))
 
 
-def make_chain_tm(
-    transformation1: Transformation,
+def make_chain_pm(
+    postprocessor1,
     measurement0: Measurement
 ) -> Measurement:
     """Construct the functional composition (`transformation1` ○ `measurement0`).
     Returns a Measurement that when invoked, computes `transformation1(measurement0(x))`.
     Used to represent non-interactive postprocessing.
     
-    [make_chain_tm in Rust documentation.](https://docs.rs/opendp/latest/opendp/combinators/fn.make_chain_tm.html)
+    [make_chain_pm in Rust documentation.](https://docs.rs/opendp/latest/opendp/combinators/fn.make_chain_pm.html)
     
-    :param transformation1: outer postprocessing transformation
-    :type transformation1: Transformation
+    :param postprocessor1: outer postprocessing transformation
     :param measurement0: inner measurement/mechanism
     :type measurement0: Measurement
     :rtype: Measurement
@@ -105,15 +104,15 @@ def make_chain_tm(
     
     # No type arguments to standardize.
     # Convert arguments to c types.
-    transformation1 = py_to_c(transformation1, c_type=Transformation, type_name=None)
+    postprocessor1 = py_to_c(postprocessor1, c_type=Postprocessor, type_name=AnyPostprocessor)
     measurement0 = py_to_c(measurement0, c_type=Measurement, type_name=None)
     
     # Call library function.
-    function = lib.opendp_combinators__make_chain_tm
-    function.argtypes = [Transformation, Measurement]
+    function = lib.opendp_combinators__make_chain_pm
+    function.argtypes = [Postprocessor, Measurement]
     function.restype = FfiResult
     
-    return c_to_py(unwrap(function(transformation1, measurement0), Measurement))
+    return c_to_py(unwrap(function(postprocessor1, measurement0), Measurement))
 
 
 def make_chain_tt(

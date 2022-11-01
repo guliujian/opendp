@@ -7,7 +7,7 @@ use opendp_derive::bootstrap;
 
 use crate::{try_, try_as_ref};
 use crate::error::{Error, ErrorVariant, ExplainUnwrap, Fallible};
-use crate::ffi::any::{AnyMeasurement, AnyObject, AnyTransformation, IntoAnyMeasurementExt, IntoAnyTransformationExt};
+use crate::ffi::any::{AnyMeasurement, AnyObject, AnyTransformation, IntoAnyMeasurementExt, IntoAnyTransformationExt, AnyPostprocessor, IntoAnyPostprocessorExt};
 use crate::ffi::util::{self, c_bool};
 use crate::ffi::util::into_c_char_p;
 
@@ -141,6 +141,19 @@ pub trait IntoAnyTransformationFfiResultExt {
 impl<T: IntoAnyTransformationExt> IntoAnyTransformationFfiResultExt for Fallible<T> {
     fn into_any(self) -> FfiResult<*mut AnyTransformation> {
         self.map(IntoAnyTransformationExt::into_any).into()
+    }
+}
+
+/// Trait to convert Result<Postprocessor> into FfiResult<*mut AnyPostprocessor>. We can't do this with From
+/// because there's a blanket implementation of From for FfiResult. We can't do this with a method on Result
+/// because it comes from another crate. So we need a separate trait.
+pub trait IntoAnyPostprocessorFfiResultExt {
+    fn into_any(self) -> FfiResult<*mut AnyPostprocessor>;
+}
+
+impl<T: IntoAnyPostprocessorExt> IntoAnyPostprocessorFfiResultExt for Fallible<T> {
+    fn into_any(self) -> FfiResult<*mut AnyPostprocessor> {
+        self.map(IntoAnyPostprocessorExt::into_any).into()
     }
 }
 
@@ -454,6 +467,53 @@ pub extern "C" fn opendp_core__measurement_output_distance_type(this: *mut AnyMe
 }
 
 
+#[bootstrap(
+    name = "postprocessor_invoke",
+    arguments(
+        this(rust_type = b"null"),
+        arg(rust_type = "$postprocessor_input_carrier_type(this)")
+    )
+)]
+/// Invoke the `postprocessor` with `arg`. Returns a differentially private release.
+/// 
+/// # Arguments
+/// * `this` - Postprocessor to invoke.
+/// * `arg` - Input data to supply to the postprocessor. A member of the postprocessor's input domain.
+#[no_mangle]
+pub extern "C" fn opendp_core__postprocessor_invoke(this: *const AnyPostprocessor, arg: *const AnyObject) -> FfiResult<*mut AnyObject> {
+    let this = try_as_ref!(this);
+    let arg = try_as_ref!(arg);
+    this.invoke(arg).into()
+}
+
+#[bootstrap(
+    name = "_postprocessor_free",
+    arguments(this(do_not_convert = true)),
+    returns(c_type = "FfiResult<void *>")
+)]
+/// Internal function. Free the memory associated with `this`.
+#[no_mangle]
+pub extern "C" fn opendp_core___postprocessor_free(this: *mut AnyPostprocessor) -> FfiResult<*mut ()> {
+    util::into_owned(this).map(|_| ()).into()
+}
+
+#[bootstrap(
+    name = "postprocessor_input_carrier_type",
+    arguments(this(rust_type = b"null")),
+    returns(c_type = "FfiResult<char *>")
+)]
+/// Get the input (carrier) data type of `this`.
+/// 
+/// # Arguments
+/// * `this` - The postprocessor to retrieve the type from.
+#[no_mangle]
+pub extern "C" fn opendp_core__postprocessor_input_carrier_type(this: *mut AnyPostprocessor) -> FfiResult<*mut c_char> {
+    let this = try_as_ref!(this);
+    FfiResult::Ok(try_!(into_c_char_p(this.input_domain.carrier_type.descriptor.to_string())))
+}
+
+
+
 #[cfg(test)]
 mod tests {
     use crate::combinators::tests::{make_test_measurement, make_test_transformation};
@@ -529,7 +589,7 @@ mod tests {
     #[test]
     fn test_measurement_invoke() -> Fallible<()> {
         let measurement = util::into_raw(make_test_measurement::<i32>().into_any());
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = opendp_core__measurement_invoke(measurement, arg);
         let res: i32 = Fallible::from(res)?.downcast()?;
         assert_eq!(res, 999);
@@ -539,7 +599,7 @@ mod tests {
     #[test]
     fn test_measurement_invoke_wrong_type() -> Fallible<()> {
         let measurement = util::into_raw(make_test_measurement::<i32>().into_any());
-        let arg = AnyObject::new_raw(999.0);
+        let arg = AnyObject::new_raw(vec![999.0]);
         let res = Fallible::from(opendp_core__measurement_invoke(measurement, arg));
         assert_eq!(res.err().unwrap_test().variant, ErrorVariant::FailedCast);
         Ok(())
@@ -548,10 +608,10 @@ mod tests {
     #[test]
     fn test_transformation_invoke() -> Fallible<()> {
         let transformation = util::into_raw(make_test_transformation::<i32>().into_any());
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = opendp_core__transformation_invoke(transformation, arg);
-        let res: i32 = Fallible::from(res)?.downcast()?;
-        assert_eq!(res, 999);
+        let res: Vec<i32> = Fallible::from(res)?.downcast()?;
+        assert_eq!(res, vec![999]);
         Ok(())
     }
 

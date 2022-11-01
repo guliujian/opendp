@@ -1,16 +1,18 @@
 use std::any;
 use std::any::Any;
 
-use crate::core::{Domain, Function, Measure, Measurement, Metric, Transformation};
+use crate::core::{Domain, Function, Measure, Measurement, Metric, MetricSpace, Transformation};
 use crate::error::*;
-use std::fmt::{Formatter, Debug};
+use std::fmt::{Debug, Formatter};
 
 /// A polymorphic Domain. This admits any value of any type (represented as a Box<dyn Any>).
 #[derive(PartialEq, Clone)]
 pub struct PolyDomain {}
 
 impl PolyDomain {
-    pub fn new() -> Self { PolyDomain {} }
+    pub fn new() -> Self {
+        PolyDomain {}
+    }
 }
 impl Default for PolyDomain {
     fn default() -> Self {
@@ -24,14 +26,19 @@ impl Debug for PolyDomain {
 }
 impl Domain for PolyDomain {
     type Carrier = Box<dyn Any>;
-    fn member(&self, _val: &Self::Carrier) -> Fallible<bool> { Ok(true) }
+    fn member(&self, _val: &Self::Carrier) -> Fallible<bool> {
+        Ok(true)
+    }
 }
+impl<M: Metric> MetricSpace for (PolyDomain, M) {}
 
 impl<DI, DO> Function<DI, DO>
-    where DI: 'static + Domain,
-          DI::Carrier: 'static,
-          DO: 'static + Domain,
-          DO::Carrier: 'static {
+where
+    DI: 'static + Domain,
+    DI::Carrier: 'static,
+    DO: 'static + Domain,
+    DO::Carrier: 'static,
+{
     /// Converts this Function into one with polymorphic output.
     pub fn into_poly(self) -> Function<DI, PolyDomain> {
         let function = move |arg: &DI::Carrier| -> Fallible<<PolyDomain as Domain>::Carrier> {
@@ -44,17 +51,29 @@ impl<DI, DO> Function<DI, DO>
 
 impl<DI: Domain> Function<DI, PolyDomain> {
     pub fn eval_poly<T: 'static>(&self, arg: &DI::Carrier) -> Fallible<T> {
-        self.eval(arg)?.downcast().map_err(|_| err!(FailedCast, "Failed downcast of eval_poly result to {}", any::type_name::<T>())).map(|res| *res)
+        self.eval(arg)?
+            .downcast()
+            .map_err(|_| {
+                err!(
+                    FailedCast,
+                    "Failed downcast of eval_poly result to {}",
+                    any::type_name::<T>()
+                )
+            })
+            .map(|res| *res)
     }
 }
 
 impl<DI, DO, MI, MO> Measurement<DI, DO, MI, MO>
-    where DI: 'static + Domain,
-          DI::Carrier: 'static,
-          DO: 'static + Domain,
-          DO::Carrier: 'static,
-          MI: 'static + Metric,
-          MO: 'static + Measure {
+where
+    DI: 'static + Domain,
+    DI::Carrier: 'static,
+    DO: 'static + Domain,
+    DO::Carrier: 'static,
+    MI: 'static + Metric,
+    MO: 'static + Measure,
+    (DI, MI): MetricSpace
+{
     /// Converts this Measurement into one with polymorphic output. This is useful for composition
     /// of heterogeneous Measurements.
     pub fn into_poly(self) -> Measurement<DI, PolyDomain, MI, MO> {
@@ -70,12 +89,16 @@ impl<DI, DO, MI, MO> Measurement<DI, DO, MI, MO>
 }
 
 impl<DI, DO, MI, MO> Transformation<DI, DO, MI, MO>
-    where DI: 'static + Domain,
-          DI::Carrier: 'static,
-          DO: 'static + Domain,
-          DO::Carrier: 'static,
-          MI: 'static + Metric,
-          MO: 'static + Metric {
+where
+    DI: 'static + Domain,
+    DI::Carrier: 'static,
+    DO: 'static + Domain,
+    DO::Carrier: 'static,
+    MI: 'static + Metric,
+    MO: 'static + Metric,
+    (DI, MI): MetricSpace,
+    (DO, MO): MetricSpace,
+{
     /// Converts this Transformation into one with polymorphic output. It's not clear if we'll need this,
     /// but it's provided for symmetry with Measurement.
     pub fn into_poly(self) -> Transformation<DI, PolyDomain, MI, MO> {
@@ -90,14 +113,15 @@ impl<DI, DO, MI, MO> Transformation<DI, DO, MI, MO>
     }
 }
 
-#[cfg(all(test, feature="untrusted"))]
+#[cfg(all(test, feature = "untrusted"))]
 mod tests {
-    use crate::metrics::ChangeOneDistance;
     use crate::domains::AllDomain;
+    use crate::domains::VectorDomain;
     use crate::error::*;
     use crate::measurements;
+    use crate::metrics::InsertDeleteDistance;
     use crate::transformations;
-    
+
     #[test]
     fn test_poly_measurement() -> Fallible<()> {
         let op_plain = measurements::make_base_laplace::<AllDomain<_>>(0.0, None)?;
@@ -108,21 +132,28 @@ mod tests {
         let res_poly = op_poly.function.eval_poly::<f64>(&arg)?;
         assert_eq!(res_poly, arg);
         let res_bogus = op_poly.function.eval_poly::<i32>(&arg);
-        assert_eq!(res_bogus.err().unwrap_test().variant, ErrorVariant::FailedCast);
+        assert_eq!(
+            res_bogus.err().unwrap_test().variant,
+            ErrorVariant::FailedCast
+        );
         Ok(())
     }
 
     #[test]
     fn test_poly_transformation() -> Fallible<()> {
-        let op_plain = transformations::make_identity(AllDomain::new(), ChangeOneDistance::default())?;
-        let arg = 99.9;
+        let op_plain =
+            transformations::make_identity(VectorDomain::new_all(), InsertDeleteDistance::default())?;
+        let arg = vec![99.9];
         let res_plain = op_plain.invoke(&arg)?;
         assert_eq!(res_plain, arg);
         let op_poly = op_plain.into_poly();
-        let res_poly = op_poly.function.eval_poly::<f64>(&arg)?;
+        let res_poly = op_poly.function.eval_poly::<Vec<f64>>(&arg)?;
         assert_eq!(res_poly, arg);
-        let res_bogus = op_poly.function.eval_poly::<i32>(&arg);
-        assert_eq!(res_bogus.err().unwrap_test().variant, ErrorVariant::FailedCast);
+        let res_bogus = op_poly.function.eval_poly::<Vec<i32>>(&arg);
+        assert_eq!(
+            res_bogus.err().unwrap_test().variant,
+            ErrorVariant::FailedCast
+        );
         Ok(())
     }
 }

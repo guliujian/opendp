@@ -3,7 +3,7 @@ use opendp_derive::bootstrap;
 use crate::core::FfiResult;
 
 use crate::error::Fallible;
-use crate::ffi::any::{AnyMeasurement, AnyTransformation};
+use crate::ffi::any::{AnyMeasurement, AnyTransformation, AnyPostprocessor};
 
 #[bootstrap(
     features("contrib"),
@@ -67,31 +67,31 @@ pub extern "C" fn opendp_combinators__make_chain_tt(
 /// Used to represent non-interactive postprocessing.
 ///
 /// # Arguments
-/// * `transformation1` - outer postprocessing transformation
+/// * `postprocessor1` - outer postprocessing transformation
 /// * `measurement0` - inner measurement/mechanism
-fn make_chain_tm(
-    transformation1: &AnyTransformation,
+fn make_chain_pm(
+    postprocessor1: &AnyPostprocessor,
     measurement0: &AnyMeasurement,
 ) -> Fallible<AnyMeasurement> {
-    super::make_chain_tm(transformation1, measurement0)
+    super::make_chain_pm(postprocessor1, measurement0)
 }
 
 #[no_mangle]
-pub extern "C" fn opendp_combinators__make_chain_tm(
-    transformation1: *const AnyTransformation,
+pub extern "C" fn opendp_combinators__make_chain_pm(
+    postprocessor1: *const AnyPostprocessor,
     measurement0: *const AnyMeasurement,
 ) -> FfiResult<*mut AnyMeasurement> {
-    let transformation1 = try_as_ref!(transformation1);
+    let postprocessor1 = try_as_ref!(postprocessor1);
     let measurement0 = try_as_ref!(measurement0);
-    make_chain_tm(transformation1, measurement0).into()
+    make_chain_pm(postprocessor1, measurement0).into()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::combinators::tests::{make_test_measurement, make_test_transformation};
+    use crate::combinators::tests::{make_test_measurement, make_test_transformation, make_test_postprocessor};
     use crate::core;
     use crate::error::Fallible;
-    use crate::ffi::any::{AnyObject, Downcast, IntoAnyMeasurementExt, IntoAnyTransformationExt};
+    use crate::ffi::any::{AnyObject, Downcast, IntoAnyMeasurementExt, IntoAnyTransformationExt, IntoAnyPostprocessorExt};
     use crate::ffi::util;
 
     use super::*;
@@ -104,7 +104,7 @@ mod tests {
             measurement1,
             transformation0,
         ))?;
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = core::opendp_core__measurement_invoke(&chain, arg);
         let res: i32 = Fallible::from(res)?.downcast()?;
         assert_eq!(res, 999);
@@ -124,10 +124,10 @@ mod tests {
             transformation1,
             transformation0,
         ))?;
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = core::opendp_core__transformation_invoke(&chain, arg);
-        let res: i32 = Fallible::from(res)?.downcast()?;
-        assert_eq!(res, 999);
+        let res: Vec<i32> = Fallible::from(res)?.downcast()?;
+        assert_eq!(res, vec![999]);
 
         let d_in = AnyObject::new_raw(999u32);
         let d_out = core::opendp_core__transformation_map(&chain, d_in);
@@ -139,12 +139,12 @@ mod tests {
     #[test]
     fn test_make_chain_tm_ffi() -> Fallible<()> {
         let measurement0 = util::into_raw(make_test_measurement::<i32>().into_any());
-        let transformation1 = util::into_raw(make_test_transformation::<i32>().into_any());
-        let chain = Result::from(opendp_combinators__make_chain_tm(
-            transformation1,
+        let postprocessor1 = util::into_raw(make_test_postprocessor::<i32>().into_any());
+        let chain = Result::from(opendp_combinators__make_chain_pm(
+            postprocessor1,
             measurement0,
         ))?;
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = core::opendp_core__measurement_invoke(&chain, arg);
         let res: i32 = Fallible::from(res)?.downcast()?;
         assert_eq!(res, 999);

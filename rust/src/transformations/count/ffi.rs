@@ -1,8 +1,9 @@
 use std::convert::TryFrom;
 use std::os::raw::c_char;
 
-use crate::core::Metric;
+use crate::core::{Metric, MetricSpace};
 use crate::core::{FfiResult, IntoAnyTransformationFfiResultExt};
+use crate::domains::{VectorDomain, AllDomain, MapDomain};
 use crate::metrics::{L1Distance, L2Distance};
 use crate::err;
 use crate::ffi::any::{AnyObject, AnyTransformation};
@@ -61,16 +62,17 @@ pub extern "C" fn opendp_transformations__make_count_by_categories(
         MO: Type, TI: Type, TO: Type,
     ) -> FfiResult<*mut AnyTransformation>
         where QO: Number {
-        fn monomorphize2<MO, TI, TO>(
+        fn monomorphize2<MO, TIA, TOA>(
             categories: *const AnyObject, 
             null_category: bool
         ) -> FfiResult<*mut AnyTransformation>
             where MO: 'static + Metric + CountByCategoriesConstant<MO::Distance>,
                   MO::Distance: Number,
-                  TI: Hashable,
-                  TO: Number {
-            let categories = try_!(try_as_ref!(categories).downcast_ref::<Vec<TI>>()).clone();
-            make_count_by_categories::<MO, TI, TO>(categories, null_category).into_any()
+                  TIA: Hashable,
+                  TOA: Number,
+                  (VectorDomain<AllDomain<TOA>>, MO): MetricSpace {
+            let categories = try_!(try_as_ref!(categories).downcast_ref::<Vec<TIA>>()).clone();
+            make_count_by_categories::<MO, TIA, TOA>(categories, null_category).into_any()
         }
         dispatch!(monomorphize2, [
             (MO, [L1Distance<QO>, L2Distance<QO>]),
@@ -100,7 +102,8 @@ pub extern "C" fn opendp_transformations__make_count_by(
             where MO: 'static + Metric + CountByConstant<MO::Distance>,
                   MO::Distance: Float,
                   TK: Hashable,
-                  TV: Number {
+                  TV: Number,
+                  (MapDomain<AllDomain<TK>, AllDomain<TV>>, MO): MetricSpace {
             make_count_by::<MO, TK, TV>().into_any()
         }
         dispatch!(monomorphize2, [

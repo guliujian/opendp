@@ -1,5 +1,5 @@
 use crate::{
-    core::{Domain, Function, StabilityMap, Transformation},
+    core::{Domain, Function, StabilityMap, Transformation, MetricSpace},
     metrics::IntDistance,
     domains::{SizedDomain},
     error::Fallible, 
@@ -32,6 +32,8 @@ where
     D: Domain,
     D::Carrier: Clone + Shuffle,
     MI: UnorderedMetric<Distance = IntDistance>,
+    (D, MI): MetricSpace,
+    (D, MI::OrderedMetric): MetricSpace
 {
     Ok(Transformation::new(
         domain.clone(),
@@ -64,6 +66,8 @@ where
     D: Domain,
     D::Carrier: Clone,
     MI: OrderedMetric<Distance = IntDistance>,
+    (D, MI): MetricSpace,
+    (D, MI::UnorderedMetric): MetricSpace
 {
     Ok(Transformation::new(
         domain.clone(),
@@ -97,6 +101,8 @@ where
     D: Domain,
     D::Carrier: Clone + CollectionSize,
     MI: BoundedMetric<Distance = IntDistance>,
+    (SizedDomain<D>, MI): MetricSpace,
+    (SizedDomain<D>, MI::UnboundedMetric): MetricSpace
 {
     Ok(Transformation::new(
         domain.clone(),
@@ -132,6 +138,8 @@ where
     D: Domain,
     D::Carrier: Clone + CollectionSize,
     MI: UnboundedMetric<Distance = IntDistance>,
+    (SizedDomain<D>, MI): MetricSpace,
+    (SizedDomain<D>, MI::BoundedMetric): MetricSpace
 {
     Ok(Transformation::new(
         domain.clone(),

@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::os::raw::{c_char, c_void};
 
-use crate::core::{FfiResult, IntoAnyMeasurementFfiResultExt};
+use crate::core::{FfiResult, IntoAnyMeasurementFfiResultExt, MetricSpace};
 use crate::domains::{AllDomain, VectorDomain};
 use crate::ffi::any::AnyMeasurement;
 use crate::ffi::util::Type;
@@ -16,9 +16,12 @@ pub extern "C" fn opendp_measurements__make_base_discrete_laplace(
     D: *const c_char,
     QO: *const c_char,
 ) -> FfiResult<*mut AnyMeasurement> {
-
-    #[cfg(feature="use-mpfr")]
-    fn monomorphize<T, QO>(scale: *const c_void, D: Type, QO: Type) -> FfiResult<*mut AnyMeasurement>
+    #[cfg(feature = "use-mpfr")]
+    fn monomorphize<T, QO>(
+        scale: *const c_void,
+        D: Type,
+        QO: Type,
+    ) -> FfiResult<*mut AnyMeasurement>
     where
         T: Integer + SampleDiscreteLaplaceLinear<QO>,
         QO: Float + InfCast<T> + InfCast<T>,
@@ -28,6 +31,7 @@ pub extern "C" fn opendp_measurements__make_base_discrete_laplace(
         fn monomorphize2<D, QO>(scale: QO) -> FfiResult<*mut AnyMeasurement>
         where
             D: 'static + DiscreteLaplaceDomain,
+            (D, D::InputMetric): MetricSpace,
             D::Atom: Integer + SampleDiscreteLaplaceLinear<QO>,
             QO: Float + InfCast<D::Atom> + InfCast<D::Atom>,
             rug::Rational: TryFrom<QO>,
@@ -41,8 +45,12 @@ pub extern "C" fn opendp_measurements__make_base_discrete_laplace(
             (QO, [QO])
         ], (scale))
     }
-    #[cfg(not(feature="use-mpfr"))]
-    fn monomorphize<T, QO>(scale: *const c_void, D: Type, QO: Type) -> FfiResult<*mut AnyMeasurement>
+    #[cfg(not(feature = "use-mpfr"))]
+    fn monomorphize<T, QO>(
+        scale: *const c_void,
+        D: Type,
+        QO: Type,
+    ) -> FfiResult<*mut AnyMeasurement>
     where
         T: Integer + SampleDiscreteLaplaceLinear<QO>,
         QO: Float + InfCast<T>,
@@ -50,6 +58,7 @@ pub extern "C" fn opendp_measurements__make_base_discrete_laplace(
         fn monomorphize2<D, QO>(scale: QO) -> FfiResult<*mut AnyMeasurement>
         where
             D: 'static + DiscreteLaplaceDomain,
+            (D, D::InputMetric): MetricSpace,
             D::Atom: Integer + SampleDiscreteLaplaceLinear<QO>,
             QO: Float + InfCast<D::Atom>,
         {
@@ -69,7 +78,6 @@ pub extern "C" fn opendp_measurements__make_base_discrete_laplace(
         (QO, @floats)
     ], (scale, D, QO))
 }
-
 
 #[cfg(test)]
 mod tests {

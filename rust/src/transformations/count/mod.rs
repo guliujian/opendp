@@ -7,7 +7,7 @@ use std::collections::hash_map::Entry;
 use num::One;
 use opendp_derive::bootstrap;
 
-use crate::core::{Function, Metric, StabilityMap, Transformation};
+use crate::core::{Function, Metric, StabilityMap, Transformation, MetricSpace};
 use crate::metrics::{AbsoluteDistance, SymmetricDistance, LpDistance};
 use crate::domains::{AllDomain, MapDomain, VectorDomain};
 use crate::error::*;
@@ -109,15 +109,16 @@ pub fn make_count_by_categories<MO, TIA, TOA>(
     where MO: CountByCategoriesConstant<MO::Distance> + Metric,
           MO::Distance: Number,
           TIA: Hashable,
-          TOA: Number {
+          TOA: Number, 
+          (VectorDomain<AllDomain<TOA>>, MO): MetricSpace{
     let mut uniques = HashSet::new();
     if categories.iter().any(move |x| !uniques.insert(x)) {
         return fallible!(MakeTransformation, "categories must be distinct")
     }
-    Ok(Transformation::new(
+    Ok(Transformation::<_, _, SymmetricDistance, MO>::new(
         VectorDomain::new_all(),
         VectorDomain::new_all(),
-        Function::new(move |data: &Vec<TIA>| {
+        Function::new(move |data: &Vec<TIA>| -> Vec<TOA> {
             let mut counts = categories.iter()
                 .map(|cat| (cat, TOA::zero())).collect::<HashMap<&TIA, TOA>>();
             let mut null_count = TOA::zero();
@@ -174,8 +175,9 @@ pub fn make_count_by<MO, TK, TV>(
     where MO: CountByConstant<MO::Distance> + Metric,
           MO::Distance: Float,
           TK: Hashable,
-          TV: Number {
-    Ok(Transformation::new(
+          TV: Number,
+          (MapDomain<AllDomain<TK>, AllDomain<TV>>, MO): MetricSpace {
+    Ok(Transformation::<_, _, SymmetricDistance, MO>::new(
         VectorDomain::new_all(),
         MapDomain::new(AllDomain::new(), AllDomain::new()),
         Function::new(move |data: &Vec<TK>| {

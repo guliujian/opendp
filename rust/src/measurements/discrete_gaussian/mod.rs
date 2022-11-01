@@ -6,7 +6,7 @@ use opendp_derive::bootstrap;
 use rug::{Integer, Rational};
 
 use crate::{
-    core::{Measure, Measurement, PrivacyMap, Metric},
+    core::{Measure, Measurement, PrivacyMap, Metric, MetricSpace},
     domains::{AllDomain, VectorDomain},
     error::Fallible,
     measures::ZeroConcentratedDivergence,
@@ -102,6 +102,7 @@ pub fn make_base_discrete_gaussian<D, MO, QI>(
 ) -> Fallible<Measurement<D, D, D::InputMetric, MO>>
 where
     D: DiscreteGaussianDomain<QI>,
+    (D, D::InputMetric): MetricSpace,
     Integer: From<D::Atom> + SaturatingCast<D::Atom>,
 
     MO: DiscreteGaussianMeasure<D, QI>,
@@ -140,6 +141,7 @@ pub fn make_base_discrete_gaussian_rug<D>(
 ) -> Fallible<Measurement<D, D, D::InputMetric, ZeroConcentratedDivergence<Rational>>>
 where
     D: DiscreteGaussianDomain<Rational, Atom = Integer>,
+    (D, D::InputMetric): MetricSpace
 {
     if scale <= 0 {
         return fallible!(MakeMeasurement, "scale must be positive");

@@ -8,71 +8,78 @@ mod float;
 pub use float::*;
 use opendp_derive::bootstrap;
 
-use crate::core::{Metric, Transformation};
-use crate::metrics::{AbsoluteDistance, InsertDeleteDistance, SymmetricDistance};
+use crate::core::{Metric, MetricSpace, Transformation};
 use crate::domains::{AllDomain, BoundedDomain, SizedDomain, VectorDomain};
 use crate::error::*;
+use crate::metrics::{AbsoluteDistance, InsertDeleteDistance, SymmetricDistance};
 use crate::traits::{CheckNull, TotalOrd};
 use crate::transformations::{make_ordered_random, make_unordered};
 
 #[bootstrap(
     features("contrib"),
-    generics(
-        MI(default = "SymmetricDistance"),
-        T(example = "$get_first(bounds)")),
+    generics(MI(default = "SymmetricDistance"), T(example = "$get_first(bounds)")),
     returns(c_type = "FfiResult<AnyTransformation *>")
 )]
-/// Make a Transformation that computes the sum of bounded data. 
+/// Make a Transformation that computes the sum of bounded data.
 /// Use `make_clamp` to bound data.
-/// 
+///
 /// # Citations
 /// * [CSVW22 Widespread Underestimation of Sensitivity...](https://arxiv.org/pdf/2207.10635.pdf)
 /// * [DMNS06 Calibrating Noise to Sensitivity in Private Data Analysis](https://people.csail.mit.edu/asmith/PS/sensitivity-tcc-final.pdf)
-/// 
+///
 /// # Arguments
 /// * `bounds` - Tuple of lower and upper bounds for data in the input domain.
-/// 
+///
 /// # Generics
 /// * `MI` - Input Metric. One of `SymmetricDistance` or `InsertDeleteDistance`.
 /// * `T` - Atomic Input Type and Output Type.
-pub fn make_bounded_sum<MI, T>(bounds: (T, T)) -> Fallible<BoundedSumTrans<MI, T>>
+pub fn make_bounded_sum<MI, T>(
+    bounds: (T, T),
+) -> Fallible<Transformation<VectorDomain<BoundedDomain<T>>, AllDomain<T>, MI, AbsoluteDistance<T>>>
 where
     MI: Metric,
     T: MakeBoundedSum<MI>,
+    (VectorDomain<BoundedDomain<T>>, MI): MetricSpace,
 {
     T::make_bounded_sum(bounds)
 }
 
 #[bootstrap(
     features("contrib"),
-    generics(
-        MI(default = "SymmetricDistance"),
-        T(example = "$get_first(bounds)")),
+    generics(MI(default = "SymmetricDistance"), T(example = "$get_first(bounds)")),
     returns(c_type = "FfiResult<AnyTransformation *>")
 )]
-/// Make a Transformation that computes the sum of bounded data with known dataset size. 
-/// 
-/// This uses a restricted-sensitivity proof that takes advantage of known dataset size for better utility. 
+/// Make a Transformation that computes the sum of bounded data with known dataset size.
+///
+/// This uses a restricted-sensitivity proof that takes advantage of known dataset size for better utility.
 /// Use `make_clamp` to bound data and `make_bounded_resize` to establish dataset size.
-/// 
+///
 /// # Citations
 /// * [CSVW22 Widespread Underestimation of Sensitivity...](https://arxiv.org/pdf/2207.10635.pdf)
 /// * [DMNS06 Calibrating Noise to Sensitivity in Private Data Analysis](https://people.csail.mit.edu/asmith/PS/sensitivity-tcc-final.pdf)
-/// 
+///
 /// # Arguments
 /// * `size` - Number of records in input data.
 /// * `bounds` - Tuple of lower and upper bounds for data in the input domain.
-/// 
+///
 /// # Generics
 /// * `MI` - Input Metric. One of `SymmetricDistance` or `InsertDeleteDistance`.
 /// * `T` - Atomic Input Type and Output Type.
 pub fn make_sized_bounded_sum<MI, T>(
     size: usize,
     bounds: (T, T),
-) -> Fallible<SizedBoundedSumTrans<MI, T>>
+) -> Fallible<
+    Transformation<
+        SizedDomain<VectorDomain<BoundedDomain<T>>>,
+        AllDomain<T>,
+        MI,
+        AbsoluteDistance<T>,
+    >,
+>
 where
     MI: Metric,
     T: MakeSizedBoundedSum<MI>,
+    (SizedDomain<VectorDomain<BoundedDomain<T>>>, MI): MetricSpace,
 {
     T::make_sized_bounded_sum(size, bounds)
 }
@@ -87,7 +94,10 @@ type BoundedSumTrans<MI, T> =
     Transformation<VectorDomain<BoundedDomain<T>>, AllDomain<T>, MI, AbsoluteDistance<T>>;
 
 #[doc(hidden)]
-pub trait MakeBoundedSum<MI: Metric>: Sized + CheckNull + Clone + TotalOrd {
+pub trait MakeBoundedSum<MI: Metric>: Sized + CheckNull + Clone + TotalOrd
+where
+    (VectorDomain<BoundedDomain<Self>>, MI): MetricSpace,
+{
     fn make_bounded_sum(bounds: (Self, Self)) -> Fallible<BoundedSumTrans<MI, Self>>;
 }
 
@@ -165,7 +175,10 @@ type SizedBoundedSumTrans<MI, T> = Transformation<
     AbsoluteDistance<T>,
 >;
 #[doc(hidden)]
-pub trait MakeSizedBoundedSum<MI: Metric>: Sized + CheckNull + Clone + TotalOrd {
+pub trait MakeSizedBoundedSum<MI: Metric>: Sized + CheckNull + Clone + TotalOrd
+where
+    (SizedDomain<VectorDomain<BoundedDomain<Self>>>, MI): MetricSpace,
+{
     fn make_sized_bounded_sum(
         size: usize,
         bounds: (Self, Self),
@@ -247,7 +260,6 @@ macro_rules! impl_make_sized_bounded_sum_float {
     };
 }
 impl_make_sized_bounded_sum_float! { f32 f64 }
-
 
 #[cfg(test)]
 mod tests {

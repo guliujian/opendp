@@ -82,7 +82,7 @@ mod tests {
             Result::from(opendp_combinators__make_basic_composition(
                 AnyObject::new_raw(measurements),
             ))?;
-        let arg = AnyObject::new_raw(999);
+        let arg = AnyObject::new_raw(vec![999]);
         let res = core::opendp_core__measurement_invoke(&basic_composition, arg);
         let res: Vec<AnyObject> = Fallible::from(res)?.downcast()?;
         let res = (*res[0].downcast_ref::<i32>()?, *res[1].downcast_ref::<i32>()?);

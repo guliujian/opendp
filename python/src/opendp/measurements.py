@@ -83,14 +83,11 @@ def make_base_discrete_laplace(
     QO: RuntimeTypeDescriptor = None
 ) -> Measurement:
     """Make a Measurement that adds noise from the discrete_laplace(`scale`) distribution to the input.
-    
     Set `D` to change the input data type and input metric:
-    
     | `D`                          | input type   | `D::InputMetric`       |
     | ---------------------------- | ------------ | ---------------------- |
     | `AllDomain<T>` (default)     | `T`          | `AbsoluteDistance<T>`  |
     | `VectorDomain<AllDomain<T>>` | `Vec<T>`     | `L1Distance<T>`        |
-    
     This uses `make_base_discrete_laplace_cks20` if scale is greater than 10, otherwise it uses `make_base_discrete_laplace_linear`.
     
     [make_base_discrete_laplace in Rust documentation.](https://docs.rs/opendp/latest/opendp/measurements/fn.make_base_discrete_laplace.html)
@@ -379,17 +376,13 @@ def make_base_laplace(
     D: RuntimeTypeDescriptor = "AllDomain<T>"
 ) -> Measurement:
     """Make a Measurement that adds noise from the laplace(`scale`) distribution to a scalar value.
-    
     Set `D` to change the input data type and input metric:
-    
     | `D`                          | input type   | `D::InputMetric`       |
     | ---------------------------- | ------------ | ---------------------- |
     | `AllDomain<T>` (default)     | `T`          | `AbsoluteDistance<T>`  |
     | `VectorDomain<AllDomain<T>>` | `Vec<T>`     | `L1Distance<T>`        |
-    
-    
-    This function takes a noise granularity in terms of 2^k. 
-    Larger granularities are more computationally efficient, but have a looser privacy map. 
+    This function takes a noise granularity in terms of 2^k.
+    Larger granularities are more computationally efficient, but have a looser privacy map.
     If k is not set, k defaults to the smallest granularity.
     
     [make_base_laplace in Rust documentation.](https://docs.rs/opendp/latest/opendp/measurements/fn.make_base_laplace.html)
@@ -439,8 +432,8 @@ def make_base_ptr(
     TV: RuntimeTypeDescriptor = None
 ) -> Measurement:
     """Make a Measurement that uses propose-test-release to privatize a hashmap of counts.
-    This function takes a noise granularity in terms of 2^k. 
-    Larger granularities are more computationally efficient, but have a looser privacy map. 
+    This function takes a noise granularity in terms of 2^k.
+    Larger granularities are more computationally efficient, but have a looser privacy map.
     If k is not set, k defaults to the smallest granularity.
     
     [make_base_ptr in Rust documentation.](https://docs.rs/opendp/latest/opendp/measurements/fn.make_base_ptr.html)

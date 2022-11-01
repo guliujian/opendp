@@ -48,6 +48,10 @@ class AnyObject(ctypes.Structure):
     pass  # Opaque struct
 
 
+class AnyPostprocessor(ctypes.Structure):
+    pass  # Opaque struct
+
+
 class AnyMeasurement(ctypes.Structure):
     pass  # Opaque struct
 

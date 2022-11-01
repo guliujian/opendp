@@ -1,7 +1,7 @@
 import ctypes
 from typing import Union, Tuple, Callable, Optional
 
-from opendp._lib import AnyMeasurement, AnyTransformation
+from opendp._lib import AnyMeasurement, AnyTransformation, AnyPostprocessor
 
 
 class Measurement(ctypes.POINTER(AnyMeasurement)):
@@ -264,6 +264,58 @@ class Transformation(ctypes.POINTER(AnyTransformation)):
         try:
             from opendp.core import _transformation_free
             _transformation_free(self)
+        except (ImportError, TypeError):
+            # ImportError: sys.meta_path is None, Python is likely shutting down
+            pass
+
+
+class Postprocessor(ctypes.POINTER(AnyPostprocessor)):
+    """A non-differentially private unit of computation.
+    A postprocessor contains a function.
+    The function maps from an input domain to an output domain.
+    """
+    _type_ = AnyPostprocessor
+
+    def invoke(self, arg):
+        """Execute a non-differentially-private query with `arg`.
+
+        :param arg: Input to the transformation.
+        :return: non-differentially-private answer
+        :raises OpenDPException: packaged error from the core OpenDP library
+        """
+        from opendp.core import postprocessor_invoke
+        return postprocessor_invoke(self, arg)
+
+    def __call__(self, arg):
+        from opendp.core import postprocessor_invoke
+        return postprocessor_invoke(self, arg)
+
+    def __rshift__(self, other: Union["Measurement", "Postprocessor"]):
+        if isinstance(other, Postprocessor):
+            from opendp.combinators import make_chain_pp
+            return make_chain_pp(other, self)
+
+        if isinstance(other, Measurement):
+            from opendp.combinators import make_chain_pm
+            return make_chain_pm(other, self)
+
+        raise ValueError(f"rshift expected a measurement or postprocessor, got {other}")
+
+    @property
+    def input_carrier_type(self):
+        """Retrieve the carrier type of the input domain.
+        Any member of the input domain is a member of the carrier type.
+
+        :return: carrier type
+        """
+        from opendp.core import postprocessor_input_carrier_type
+        from opendp.typing import RuntimeType
+        return RuntimeType.parse(postprocessor_input_carrier_type(self))
+
+    def __del__(self):
+        try:
+            from opendp.core import _postprocessor_free
+            _postprocessor_free(self)
         except (ImportError, TypeError):
             # ImportError: sys.meta_path is None, Python is likely shutting down
             pass

@@ -7,6 +7,7 @@ from opendp.typing import *
 __all__ = [
     "_error_free",
     "_measurement_free",
+    "_postprocessor_free",
     "_transformation_free",
     "measurement_check",
     "measurement_input_carrier_type",
@@ -14,6 +15,8 @@ __all__ = [
     "measurement_invoke",
     "measurement_map",
     "measurement_output_distance_type",
+    "postprocessor_input_carrier_type",
+    "postprocessor_invoke",
     "transformation_check",
     "transformation_input_carrier_type",
     "transformation_input_distance_type",
@@ -65,6 +68,28 @@ def _measurement_free(
     # Call library function.
     function = lib.opendp_core___measurement_free
     function.argtypes = [Measurement]
+    function.restype = FfiResult
+    
+    return c_to_py(unwrap(function(this), ctypes.c_void_p))
+
+
+def _postprocessor_free(
+    this
+):
+    """Internal function. Free the memory associated with `this`.
+    
+    [_postprocessor_free in Rust documentation.](https://docs.rs/opendp/latest/opendp/core/fn._postprocessor_free.html)
+    
+    :param this: 
+    :raises TypeError: if an argument's type differs from the expected type
+    :raises UnknownTypeError: if a type argument fails to parse
+    :raises OpenDPException: packaged error from the core OpenDP library
+    """
+    # No type arguments to standardize.
+    # No arguments to convert to c types.
+    # Call library function.
+    function = lib.opendp_core___postprocessor_free
+    function.argtypes = [Postprocessor]
     function.restype = FfiResult
     
     return c_to_py(unwrap(function(this), ctypes.c_void_p))
@@ -263,6 +288,60 @@ def measurement_output_distance_type(
     function.restype = FfiResult
     
     return c_to_py(unwrap(function(this), ctypes.c_char_p))
+
+
+def postprocessor_input_carrier_type(
+    this
+) -> str:
+    """Get the input (carrier) data type of `this`.
+    
+    [postprocessor_input_carrier_type in Rust documentation.](https://docs.rs/opendp/latest/opendp/core/fn.postprocessor_input_carrier_type.html)
+    
+    :param this: The postprocessor to retrieve the type from.
+    :rtype: str
+    :raises TypeError: if an argument's type differs from the expected type
+    :raises UnknownTypeError: if a type argument fails to parse
+    :raises OpenDPException: packaged error from the core OpenDP library
+    """
+    # No type arguments to standardize.
+    # Convert arguments to c types.
+    this = py_to_c(this, c_type=Postprocessor, type_name=None)
+    
+    # Call library function.
+    function = lib.opendp_core__postprocessor_input_carrier_type
+    function.argtypes = [Postprocessor]
+    function.restype = FfiResult
+    
+    return c_to_py(unwrap(function(this), ctypes.c_char_p))
+
+
+def postprocessor_invoke(
+    this,
+    arg: Any
+) -> Any:
+    """Invoke the `postprocessor` with `arg`. Returns a differentially private release.
+    
+    [postprocessor_invoke in Rust documentation.](https://docs.rs/opendp/latest/opendp/core/fn.postprocessor_invoke.html)
+    
+    :param this: Postprocessor to invoke.
+    :param arg: Input data to supply to the postprocessor. A member of the postprocessor's input domain.
+    :type arg: Any
+    :rtype: Any
+    :raises TypeError: if an argument's type differs from the expected type
+    :raises UnknownTypeError: if a type argument fails to parse
+    :raises OpenDPException: packaged error from the core OpenDP library
+    """
+    # No type arguments to standardize.
+    # Convert arguments to c types.
+    this = py_to_c(this, c_type=Postprocessor, type_name=None)
+    arg = py_to_c(arg, c_type=AnyObjectPtr, type_name=postprocessor_input_carrier_type(this))
+    
+    # Call library function.
+    function = lib.opendp_core__postprocessor_invoke
+    function.argtypes = [Postprocessor, AnyObjectPtr]
+    function.restype = FfiResult
+    
+    return c_to_py(unwrap(function(this, arg), AnyObjectPtr))
 
 
 def transformation_check(

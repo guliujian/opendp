@@ -27,6 +27,8 @@
     "const AnyMeasurement *": "Measurement",
     "AnyTransformation *": "Transformation",
     "const AnyTransformation *": "Transformation",
+    "AnyPostprocessor *": "Postprocessor",
+    "const AnyPostprocessor *": "Postprocessor",
     "FfiError *": "ctypes.POINTER(FfiError)",
     "const FfiError *": "ctypes.POINTER(FfiError)",
     "FfiResult": "FfiResult"

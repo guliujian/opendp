@@ -3,7 +3,7 @@ use std::os::raw::{c_char, c_uint, c_void};
 
 use opendp_derive::bootstrap;
 
-use crate::core::{FfiResult, IntoAnyTransformationFfiResultExt, Transformation};
+use crate::core::{FfiResult, Transformation, MetricSpace, IntoAnyTransformationFfiResultExt};
 use crate::error::Fallible;
 use crate::metrics::{InsertDeleteDistance, SymmetricDistance, IntDistance};
 use crate::domains::{AllDomain, BoundedDomain, VectorDomain, SizedDomain};
@@ -43,6 +43,8 @@ where
     MI: 'static + IsMetricOrdered<Distance=IntDistance>,
     MO: 'static + IsMetricOrdered<Distance=IntDistance>,
     TA: 'static + Clone + CheckNull,
+    (VectorDomain<AllDomain<TA>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MO): MetricSpace,
 {
     let atom_domain = AllDomain::new();
     super::make_resize(size, atom_domain, constant)
@@ -61,7 +63,9 @@ pub extern "C" fn opendp_transformations__make_resize(
         where 
             MI: 'static + IsMetricOrdered<Distance=IntDistance>,
             MO: 'static + IsMetricOrdered<Distance=IntDistance>,
-            TA: 'static + Clone + CheckNull, {
+            TA: 'static + Clone + CheckNull, 
+            (VectorDomain<AllDomain<TA>>, MI): MetricSpace,
+            (SizedDomain<VectorDomain<AllDomain<TA>>>, MO): MetricSpace, {
         let constant = try_!(try_as_ref!(constant).downcast_ref::<TA>()).clone();
         make_resize::<MI, MO, TA>(size, constant).into_any()
     }
@@ -109,6 +113,8 @@ where
     TA: 'static + Clone + CheckNull + TotalOrd,
     MI: 'static + IsMetricOrdered<Distance=IntDistance>,
     MO: 'static + IsMetricOrdered<Distance=IntDistance>,
+    (VectorDomain<BoundedDomain<TA>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MO): MetricSpace,
 {
     let atom_domain = BoundedDomain::new_closed(bounds)?;
     super::make_resize(size, atom_domain, constant)
@@ -129,7 +135,9 @@ pub extern "C" fn opendp_transformations__make_bounded_resize(
         where 
             TA: 'static + Clone + CheckNull + TotalOrd,
             MI: 'static + IsMetricOrdered<Distance=IntDistance>,
-            MO: 'static + IsMetricOrdered<Distance=IntDistance>, {
+            MO: 'static + IsMetricOrdered<Distance=IntDistance>, 
+            (VectorDomain<BoundedDomain<TA>>, MI): MetricSpace,
+            (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MO): MetricSpace, {
         let bounds = try_!(try_as_ref!(bounds).downcast_ref::<(TA, TA)>()).clone();
         let constant = try_as_ref!(constant as *const TA).clone();
         make_bounded_resize::<MI, MO, TA>(size, bounds, constant).into_any()

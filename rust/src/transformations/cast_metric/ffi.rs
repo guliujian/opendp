@@ -3,7 +3,7 @@ use std::os::raw::{c_char, c_uint};
 
 use opendp_derive::bootstrap;
 
-use crate::core::{FfiResult, IntoAnyTransformationFfiResultExt, Transformation};
+use crate::core::{FfiResult, IntoAnyTransformationFfiResultExt, Transformation, MetricSpace};
 use crate::domains::{AllDomain, BoundedDomain, SizedDomain, VectorDomain};
 use crate::err;
 use crate::error::Fallible;
@@ -86,6 +86,8 @@ fn make_sized_ordered_random<MI, TA>(
 where
     MI: 'static + UnorderedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::OrderedMetric): MetricSpace
 {
     let domain = SizedDomain::new(VectorDomain::new(AllDomain::<TA>::new()), size);
     super::make_ordered_random(domain)
@@ -105,6 +107,8 @@ pub extern "C" fn opendp_transformations__make_sized_ordered_random(
     where
         MI: 'static + UnorderedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::OrderedMetric): MetricSpace
     {
         make_sized_ordered_random::<MI, TA>(size).into_any()
     }
@@ -147,6 +151,8 @@ fn make_sized_bounded_ordered_random<MI, TA>(
 where
     MI: 'static + UnorderedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull + TotalOrd,
+    (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI::OrderedMetric): MetricSpace
 {
     let domain = SizedDomain::new(
         VectorDomain::new(BoundedDomain::<TA>::new_closed(bounds)?),
@@ -171,6 +177,8 @@ pub extern "C" fn opendp_transformations__make_sized_bounded_ordered_random(
     where
         MI: 'static + UnorderedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull + TotalOrd,
+        (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI::OrderedMetric): MetricSpace
     {
         let bounds = try_!(bounds.downcast_ref::<(TA, TA)>()).clone();
         make_sized_bounded_ordered_random::<MI, TA>(size, bounds).into_any()
@@ -247,6 +255,8 @@ fn make_sized_unordered<MI, TA>(
 where
     MI: 'static + OrderedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::UnorderedMetric): MetricSpace
 {
     let domain = SizedDomain::new(VectorDomain::new(AllDomain::<TA>::new()), size);
     super::make_unordered(domain)
@@ -266,6 +276,8 @@ pub extern "C" fn opendp_transformations__make_sized_unordered(
     where
         MI: 'static + OrderedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::UnorderedMetric): MetricSpace
     {
         make_sized_unordered::<MI, TA>(size).into_any()
     }
@@ -309,6 +321,8 @@ fn make_sized_bounded_unordered<MI, TA>(
 where
     MI: 'static + OrderedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull + TotalOrd,
+    (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI::UnorderedMetric): MetricSpace
 {
     let domain = SizedDomain::new(VectorDomain::new(BoundedDomain::<TA>::new_closed(bounds)?), size);
     super::make_unordered(domain)
@@ -330,6 +344,8 @@ pub extern "C" fn opendp_transformations__make_sized_bounded_unordered(
     where
         MI: 'static + OrderedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull + TotalOrd,
+        (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<BoundedDomain<TA>>>, MI::UnorderedMetric): MetricSpace
     {
         let bounds = try_!(bounds.downcast_ref::<(TA, TA)>()).clone();
         make_sized_bounded_unordered::<MI, TA>(size, bounds).into_any()
@@ -376,6 +392,8 @@ fn make_metric_bounded<MI, TA>(
 where
     MI: 'static + UnboundedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::BoundedMetric): MetricSpace
 {
     let domain = SizedDomain::new(VectorDomain::new_all(), size);
     super::make_metric_bounded(domain)
@@ -394,6 +412,8 @@ pub extern "C" fn opendp_transformations__make_metric_bounded(
     where
         MI: 'static + UnboundedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::BoundedMetric): MetricSpace
     {
         make_metric_bounded::<MI, TA>(size).into_any()
     }
@@ -436,6 +456,8 @@ fn make_metric_unbounded<MI, TA>(
 where
     MI: 'static + BoundedMetric<Distance = IntDistance>,
     TA: 'static + Clone + CheckNull,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::UnboundedMetric): MetricSpace
 {
     let domain = SizedDomain::new(VectorDomain::new_all(), size);
     super::make_metric_unbounded(domain)
@@ -454,6 +476,8 @@ pub extern "C" fn opendp_transformations__make_metric_unbounded(
     where
         MI: 'static + BoundedMetric<Distance = IntDistance>,
         TA: 'static + Clone + CheckNull,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI): MetricSpace,
+        (SizedDomain<VectorDomain<AllDomain<TA>>>, MI::UnboundedMetric): MetricSpace
     {
         make_metric_unbounded::<MI, TA>(size).into_any()
     }

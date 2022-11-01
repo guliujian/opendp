@@ -1,7 +1,7 @@
 #[cfg(feature = "ffi")]
 mod ffi;
 
-use crate::core::{Transformation, Function, StabilityMap, Domain, Metric};
+use crate::core::{Transformation, Function, StabilityMap, Domain, Metric, MetricSpace};
 use crate::metrics::{SymmetricDistance, InsertDeleteDistance, IntDistance};
 use crate::domains::{VectorDomain, SizedDomain};
 use crate::error::Fallible;
@@ -45,6 +45,8 @@ where
     DA::Carrier: 'static + Clone + CheckNull,
     MI: IsMetricOrdered<Distance = IntDistance>,
     MO: IsMetricOrdered<Distance = IntDistance>,
+    (VectorDomain<DA>, MI): MetricSpace,
+    (SizedDomain<VectorDomain<DA>>, MO): MetricSpace,
 {
     if !atom_domain.member(&constant)? {
         return fallible!(MakeTransformation, "constant must be a member of DA");

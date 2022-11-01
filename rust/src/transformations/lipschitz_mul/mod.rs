@@ -2,7 +2,7 @@ use num::One;
 use opendp_derive::bootstrap;
 
 use crate::{
-    core::{Domain, Function, Metric, StabilityMap, Transformation},
+    core::{Domain, Function, Metric, StabilityMap, Transformation, MetricSpace},
     metrics::{AbsoluteDistance, LpDistance},
     domains::{AllDomain, VectorDomain},
     error::Fallible,
@@ -44,6 +44,7 @@ pub fn make_lipschitz_float_mul<D, M>(
 where
     D: LipschitzMulFloatDomain,
     M: LipschitzMulFloatMetric<Distance = D::Atom>,
+    (D, M): MetricSpace
 {
     let mantissa_bits = D::Atom::exact_int_cast(D::Atom::MANTISSA_BITS)?;
     let exponent_bias = D::Atom::exact_int_cast(D::Atom::EXPONENT_BIAS)?;

@@ -1,5 +1,5 @@
 use crate::{
-    core::{Function, Metric, StabilityMap, Transformation},
+    core::{Function, Metric, StabilityMap, Transformation, MetricSpace},
     metrics::LpDistance,
     domains::{AllDomain, VectorDomain},
     error::Fallible,
@@ -35,6 +35,7 @@ where
     TA: Integer,
     M: BAryTreeMetric,
     M::Distance: Number,
+    (VectorDomain<AllDomain<TA>>, M): MetricSpace
 {
     if leaf_count == 0 {
         return fallible!(MakeTransformation, "leaf_count must be at least 1");

@@ -1,6 +1,6 @@
 use opendp_derive::bootstrap;
 
-use crate::{error::Fallible, core::{Transformation, Function}, domains::{VectorDomain, AllDomain}, metrics::AgnosticMetric, traits::{Float, CheckNull, RoundCast}, transformations::make_postprocess};
+use crate::{error::Fallible, core::{Postprocessor, Function}, domains::{VectorDomain, AllDomain}, traits::{Float, CheckNull, RoundCast}, transformations::make_postprocess};
 
 use super::{num_layers_from_num_nodes, num_nodes_from_num_layers};
 
@@ -33,11 +33,9 @@ mod ffi;
 pub fn make_consistent_b_ary_tree<TIA, TOA>(
     branching_factor: usize,
 ) -> Fallible<
-    Transformation<
+    Postprocessor<
         VectorDomain<AllDomain<TIA>>,
-        VectorDomain<AllDomain<TOA>>,
-        AgnosticMetric,
-        AgnosticMetric,
+        VectorDomain<AllDomain<TOA>>
     >,
 >
 where

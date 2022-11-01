@@ -4,10 +4,9 @@ use num::Zero;
 use opendp_derive::bootstrap;
 
 use crate::{
-    core::{Function, Transformation},
+    core::{Function, Postprocessor},
     domains::{AllDomain, VectorDomain},
     error::Fallible,
-    metrics::AgnosticMetric,
     traits::{Float, Number, RoundCast},
 };
 
@@ -22,11 +21,9 @@ mod ffi;
 /// # Generics
 /// * `TA` - Atomic Type. One of `f32` or `f64`
 pub fn make_cdf<TA>() -> Fallible<
-    Transformation<
+    Postprocessor<
         VectorDomain<AllDomain<TA>>,
-        VectorDomain<AllDomain<TA>>,
-        AgnosticMetric,
-        AgnosticMetric,
+        VectorDomain<AllDomain<TA>>
     >,
 >
 where
@@ -75,11 +72,9 @@ pub fn make_quantiles_from_counts<TA, F>(
     alphas: Vec<F>,
     interpolation: Interpolation,
 ) -> Fallible<
-    Transformation<
+    Postprocessor<
         VectorDomain<AllDomain<TA>>,
         VectorDomain<AllDomain<TA>>,
-        AgnosticMetric,
-        AgnosticMetric,
     >,
 >
 where
