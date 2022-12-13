@@ -1,0 +1,63 @@
+name: Build
+on:
+  push
+env:
+  FEATURES: untrusted,ffi
+
+
+jobs:
+  credential-check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check if user is an administrator
+        uses: lannonbr/repo-permission-check-action@2.0.0
+        with:
+          permission: admin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+          cache: pip
+
+      - name: Assert version
+        run: |
+          pip install -r tools/requirements-assert_version.txt
+          python tools/assert_version.py
+
+
+  python-pre-publish-linux:
+    runs-on: ubuntu-20.04
+    needs: credential-check
+    env:
+      DOCKER_IMAGE: quay.io/pypa/manylinux2014_x86_64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ~/.cache/gmp-mpfr-sys
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Create Rust build for linux
+        run: docker run --rm -v `pwd`:/io $DOCKER_IMAGE bash -c "cd /io && bash tools/rust_build.sh -i -r -t -f \"$FEATURES\""
+
+      - name: Upload .so
+        uses: actions/upload-artifact@v3
+        with:
+          name: lib_so
+          path: rust/target/release/libopendp.so
