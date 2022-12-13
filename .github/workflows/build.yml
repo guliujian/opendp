@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: credential-check
     env:
-      DOCKER_IMAGE: quay.io/pypa/manylinux2014_x86_64
+      DOCKER_IMAGE: quay.io/pypa/manylinux2014_aarch64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
